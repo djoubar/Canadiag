@@ -43,10 +43,10 @@ df_base <- read_xlsx("~/M2MSR/donnees/20260619_extraction_fusionnee.xlsx") |>
   ) |>
   mutate(across(where(is.numeric), ~ round(., 2)))
 
- df_base <- left_join(df_base, df_add, by = "id_hemoc")
-  # ==============================================================================
-  #                                  RENOMMER
-  # ==============================================================================
+df_base <- left_join(df_base, df_add, by = "id_hemoc")
+# ==============================================================================
+#                                  RENOMMER
+# ==============================================================================
 df_base <- df_base |>
   rename(
     # dates et informations de base
@@ -526,18 +526,19 @@ df_base <- df_base |>
     )),
     os_cvc = factor(
       os_cvc,
-      levels =c("non", "oui"),
-      labels =c("non", "oui")),
+      levels = c("non", "oui"),
+      labels = c("non", "oui")
+    ),
     os_parenterale = as.factor(ifelse(
       os_parenterale > 0,
       "1",
       "0"
-    )
-    ),
+    )),
     os_eer = factor(
       os_eer,
-      levels =c("non", "oui"),
-      labels =c("non", "oui"))
+      levels = c("non", "oui"),
+      labels = c("non", "oui")
+    )
   )
 
 # ==============================================================================
@@ -556,14 +557,14 @@ df_base <- df_base |>
   group_by(n_sejour, groupehc) |>
   mutate(resultat_candida_def = any(resultat_candida == "positif", na.rm = TRUE)) |>
   ungroup()
-  # 3. Supprimer les groupes QUI SUIVENT un groupe positif
-  # group_by(n_sejour) |>
-  # arrange(n_sejour, groupehc) |>
-  # mutate(
-  #   suppress_after = cummax(ifelse(lag(resultat_candida_def, default = FALSE), 1, 0))
-  # ) |>
-  # ungroup() |>
-  # filter(suppress_after == 0)
+# 3. Supprimer les groupes QUI SUIVENT un groupe positif
+# group_by(n_sejour) |>
+# arrange(n_sejour, groupehc) |>
+# mutate(
+#   suppress_after = cummax(ifelse(lag(resultat_candida_def, default = FALSE), 1, 0))
+# ) |>
+# ungroup() |>
+# filter(suppress_after == 0)
 
 # ==============================================================================
 #                            COMPLETER MANUELLEMENT
@@ -875,8 +876,11 @@ df_base <- df_base %>%
   # slice(1) |>
   ungroup() |>
   mutate(
-  resultat_candida_def = factor(as.integer(resultat_candida_def), levels = c(0, 1),
-                              labels = c("Négative", "Positive")),
+    resultat_candida_def = factor(
+      as.integer(resultat_candida_def),
+      levels = c(0, 1),
+      labels = c("Négative", "Positive")
+    ),
     date_candidemie = as.POSIXct(ifelse(
       resultat_candida_def == "Positive",
       date_hemoc,
@@ -892,14 +896,17 @@ df_base <- df_base %>%
 
 #
 
-
 df_base <- df_base |>
   mutate(
     score_oz = ifelse(
-    hc_vi_cat == "Oui" & os_atb == 1 & os_cvc == "oui" & (adm_pancreatite_aigue == "Oui" | os_eer == "oui" ),
-    "OUI",
-    "NON")
+      hc_vi_cat == "Oui" &
+        os_atb == 1 &
+        os_cvc == "oui" &
+        (adm_pancreatite_aigue == "Oui" | os_eer == "oui"),
+      "OUI",
+      "NON"
     )
+  )
 
 table(df_base$score_oz, df_base$resultat_candida)
 
@@ -922,8 +929,8 @@ table(Score_OZ = df_perf$y_pred, Candidose = df_perf$y_true)
 # ---- 2. Mesures avec MLmetrics ----
 ConfusionMatrix(y_pred = df_perf$y_pred, y_true = df_perf$y_true)
 
-se  <- Sensitivity(y_true = df_perf$y_true, y_pred = df_perf$y_pred, positive = "1")
-sp  <- Specificity(y_true = df_perf$y_true, y_pred = df_perf$y_pred, positive = "1")
+se <- Sensitivity(y_true = df_perf$y_true, y_pred = df_perf$y_pred, positive = "1")
+sp <- Specificity(y_true = df_perf$y_true, y_pred = df_perf$y_pred, positive = "1")
 vpp <- Precision(y_true = df_perf$y_true, y_pred = df_perf$y_pred, positive = "1")
 vpn <- Precision(y_true = df_perf$y_true, y_pred = df_perf$y_pred, positive = "0") # VPN = précision de la classe négative
 auc <- AUC(y_pred = df_perf$y_pred, y_true = df_perf$y_true)
@@ -935,17 +942,24 @@ FN <- sum(df_perf$y_pred == 0 & df_perf$y_true == 1)
 VN <- sum(df_perf$y_pred == 0 & df_perf$y_true == 0)
 
 ic <- function(x, n) {
-  if (n == 0) return(c(NA, NA))
+  if (n == 0) {
+    return(c(NA, NA))
+  }
   binom.test(x, n)$conf.int
 }
 
 resultats <- tibble::tibble(
-  Mesure   = c("Sensibilité", "Spécificité", "VPP", "VPN"),
-  n        = c(paste0(VP, "/", VP + FN), paste0(VN, "/", VN + FP),
-               paste0(VP, "/", VP + FP), paste0(VN, "/", VN + FN)),
-  Valeur   = c(se, sp, vpp, vpn))
-  # IC_inf   = c(ic(VP, VP + FN)[1], ic(VN, VN + FP)[1], ic(VP, VP + FP)[1], ic(VN, VN + FN)[1]),
-  # IC_sup   = c(ic(VP, VP + FN)[2], ic(VN, VN + FP)[2], ic(VP, VP + FP)[2], ic(VN, VN + FN)[2])
+  Mesure = c("Sensibilité", "Spécificité", "VPP", "VPN"),
+  n = c(
+    paste0(VP, "/", VP + FN),
+    paste0(VN, "/", VN + FP),
+    paste0(VP, "/", VP + FP),
+    paste0(VN, "/", VN + FN)
+  ),
+  Valeur = c(se, sp, vpp, vpn)
+)
+# IC_inf   = c(ic(VP, VP + FN)[1], ic(VN, VN + FP)[1], ic(VP, VP + FP)[1], ic(VN, VN + FN)[1]),
+# IC_sup   = c(ic(VP, VP + FN)[2], ic(VN, VN + FP)[2], ic(VP, VP + FP)[2], ic(VN, VN + FN)[2])
 # ) |>
 #   mutate(
 #     across(c(Valeur, IC_inf, IC_sup), ~ round(.x * 100, 1)),
@@ -957,20 +971,20 @@ cat("AUC (MLmetrics) :", round(auc, 3), "\n")
 
 # ---- 4. Courbe ROC avec pROC ----
 roc_oz <- roc(
-  response  = df_perf$y_true,
+  response = df_perf$y_true,
   predictor = df_perf$y_pred,
-  levels    = c(0, 1),   # contrôles, cas
+  levels = c(0, 1), # contrôles, cas
   direction = "<",
-  ci        = TRUE
+  ci = TRUE
 )
 
-roc_oz          # AUC + IC 95 % (DeLong)
+roc_oz # AUC + IC 95 % (DeLong)
 
 plot(
   roc_oz,
-  legacy.axes = TRUE,          # axe X en 1 - Spécificité
-  print.auc   = TRUE,
-  col         = "#2C7FB8",
-  lwd         = 2,
-  main        = "Courbe ROC – Score d'Ostrosky-Zeichner"
+  legacy.axes = TRUE, # axe X en 1 - Spécificité
+  print.auc = TRUE,
+  col = "#2C7FB8",
+  lwd = 2,
+  main = "Courbe ROC – Score d'Ostrosky-Zeichner"
 )
