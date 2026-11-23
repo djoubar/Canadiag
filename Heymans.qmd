@@ -1,0 +1,35 @@
+---
+title: "Sélection de variables"
+author:
+  name: "BAERT Julien"
+  email: julien1.baert@chu-lille.fr
+  affiliation: CHU de Lille
+date: last-modified
+execute:
+  # cache: true
+  # freeze: auto
+  message: false
+  warning: false
+  echo: false
+  editor: source
+lang: fr
+---
+
+```{r}
+#| label: tbl-medical
+#| tbl-cap: "Fréquence de sélection des variables - Réa Médicale"
+#| lightbox: true
+
+source("scripts/julien/Heymans.R")
+
+```
+
+
+```{r}
+#| label: tbl-chirurgie
+#| tbl-cap: "Fréquence de sélection des variables - Réa Médicale"
+#| lightbox: true
+
+source("scripts/julien/Heymans.R")
+
+```
